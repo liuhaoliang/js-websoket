@@ -35,10 +35,22 @@ export default function(url, opts) {
     }
   };
   _.sendJson = function(data) {
-    ws.send(JSON.stringify(data || {}));
+    _.send(JSON.stringify(data || {}));
   };
-  _.send = function(text) {
-    ws.send(text);
+  _.send = function(text, callback) {
+    var desc = {
+      0: "CONNECTING",
+      1: "OPEN",
+      2: "CLOSING",
+      3: "CLOSED"
+    };
+    if (ws && ws.readyState == WebSocket.OPEN) {
+      ws.send(text);
+      callback && callback(true);
+    } else {
+      var code = ws.readyState;
+      callback && callback(false, { code, reason: desc[code] });
+    }
   };
   _.close = function(code, reason) {
     ws.close(code || 1005, reason);
