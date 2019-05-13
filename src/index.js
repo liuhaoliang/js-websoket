@@ -1,4 +1,10 @@
 function noop() {}
+var ConnectDescriptions = {
+  0: "CONNECTING",
+  1: "OPEN",
+  2: "CLOSING",
+  3: "CLOSED"
+};
 export default function(url, opts) {
   opts = opts || {};
   var ws,
@@ -34,26 +40,45 @@ export default function(url, opts) {
       (opts.onmaximum || noop)(e);
     }
   };
-  _.sendJson = function(data) {
-    _.send(JSON.stringify(data || {}));
+  
+  /**
+   * data: the object data to send
+   * callback: (success:bool,e:{code:int,reason:string})
+   */
+  _.sendJson = function(data,callback) {
+    _.send(JSON.stringify(data || {}),callback);
   };
+
+  /**
+   * text: the msg to send
+   * callback: (success:bool,e:{code:int,reason:string})
+   */
   _.send = function(text, callback) {
-    var desc = {
-      0: "CONNECTING",
-      1: "OPEN",
-      2: "CLOSING",
-      3: "CLOSED"
-    };
     if (ws && ws.readyState == WebSocket.OPEN) {
       ws.send(text);
       callback && callback(true);
     } else {
       var code = ws.readyState;
-      callback && callback(false, { code, reason: desc[code] });
+      callback && callback(false, { code, reason: ConnectDescriptions[code] });
     }
   };
-  _.close = function(code, reason) {
-    ws.close(code || 1005, reason);
+
+  /**
+   * code: the code to show
+   * reason: the reason to show
+   * callback: (success:bool,e:{code:int,reason:string})
+   */
+  _.close = function(code, reason, callback) {
+    if (
+      ws &&
+      (ws.readyState != WebSocket.CLOSED || ws.readyState != WebSocket.CLOSING)
+    ) {
+      ws.close(code || 1005, reason);
+      callback && callback(true);
+    } else {
+      callback &&
+        callback(false, { code: 1005, reason: ConnectDescriptions[code] });
+    }
   };
   _.open();
   return _;
