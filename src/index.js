@@ -4,6 +4,7 @@ export default function(url, opts) {
   var ws,
     num = 0,
     timeout = 1e3,
+    timeoutRef = null,
     _ = {};
   _.open = function() {
     ws = new WebSocket(url, opts.protocols || []);
@@ -24,7 +25,8 @@ export default function(url, opts) {
   _.reconnect = function(e) {
     var max = opts.maxAttempts || Infinity;
     if (num++ < max) {
-      setTimeout(function() {
+      timeoutRef && clearTimeout(timeoutRef);
+      timeoutRef = setTimeout(function() {
         (opts.onreconnect || noop)(e);
         _.open();
       }, opts.timeout || timeout);
