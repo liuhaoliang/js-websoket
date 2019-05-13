@@ -59,7 +59,7 @@ export default function(url, opts) {
       callback && callback(true);
     } else {
       var code = ws.readyState;
-      callback && callback(false, { code, reason: ConnectDescriptions[code] });
+      callback && callback(false, { code, msg: ConnectDescriptions[code] });
     }
   };
 
@@ -73,11 +73,11 @@ export default function(url, opts) {
       ws &&
       (ws.readyState != WebSocket.CLOSED || ws.readyState != WebSocket.CLOSING)
     ) {
-      ws.close(code || 1005, reason);
+      ws.close(code || 1000, reason);
       callback && callback(true);
     } else {
       callback &&
-        callback(false, { code: 1005, reason: ConnectDescriptions[code] });
+        callback(false, { code: 1005, msg: ConnectDescriptions[code] });
     }
   };
   _.open();
